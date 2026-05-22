@@ -1,0 +1,108 @@
+# cll-cpm-inversion
+
+Invert segmented spheroid morphology into Cellular Potts Model (CPM)
+parameter posteriors, with per-parameter identifiability flags.
+
+Given a folder of segmented spheroid masks (JPG / TIFF / PNG), this package:
+
+1. extracts the five operational morphology features (area, equivalent
+   diameter, solidity, perimeter, circularity);
+2. matches each observation against a bundled 583-vector synthetic library
+   sampled with a 7-parameter Saltelli design;
+3. returns a posterior distribution over CPM parameters (median + 5th / 95th
+   percentiles) using Sobol-weighted k-nearest-neighbour matching;
+4. flags each parameter as **identifiable**, **weakly identifiable**, or
+   **unidentifiable** based on the leave-one-out R^2 of the bundled library.
+
+## Install
+
+```bash
+pip install git+https://github.com/DjamelZair/CPM-parameter-Posterior-Estimate-Generator.git
+```
+
+or, from a clone:
+
+```bash
+git clone https://github.com/DjamelZair/CPM-parameter-Posterior-Estimate-Generator.git
+cd CPM-parameter-Posterior-Estimate-Generator
+pip install -e .
+```
+
+## Quickstart (CLI)
+
+```bash
+cll-invert /path/to/masks/  --out posteriors.csv
+```
+
+`/path/to/masks/` is a folder where each subfolder is one spheroid
+trajectory (one mask file per frame), or a flat folder of single-frame
+masks. Files can be `.jpg`, `.png`, or `.tif/.tiff`. White or non-zero
+pixels are treated as the spheroid; black or zero pixels as background.
+
+The output CSV has one row per (spheroid, parameter):
+
+| spheroid_id | parameter   | median | q05  | q95  | identifiability       |
+|-------------|-------------|--------|------|------|----------------------|
+| W001        | width       | 17.0   | 9.0  | 25.0 | weakly identifiable  |
+| W001        | cm_adhesion | 17.4   | 11.2 | 23.1 | weakly identifiable  |
+| W001        | contact     | 38.7   | 19.8 | 49.1 | weakly identifiable  |
+| W001        | lambda      | 12.5   |  2.3 | 19.7 | unidentifiable       |
+| ...         | ...         | ...    | ...  | ...  | ...                  |
+
+## Quickstart (Python)
+
+```python
+from cll_cpm_inversion import infer_from_masks
+
+posterior = infer_from_masks("/path/to/masks/")
+posterior.to_csv("posteriors.csv", index=False)
+
+print(posterior[posterior.identifiability != "unidentifiable"]
+      .pivot(index="spheroid_id", columns="parameter", values="median"))
+```
+
+See `examples/01_quickstart.ipynb` for a full walk-through.
+
+## What this package gives you
+
+| Parameter   | Symbol     | LOO R^2 | Flag                 |
+|-------------|-----------|---------|----------------------|
+| cm_adhesion | $J_{cm}$  | 0.58    | weakly identifiable  |
+| width       | $w$       | 0.51    | weakly identifiable  |
+| contact     | $J_{cc}$  | 0.32    | weakly identifiable  |
+| lambda      | $\lambda_V$ | 0.19  | unidentifiable       |
+| temp        | $T$       | 0.19    | unidentifiable       |
+| contact_no  | $r_{ct}$  | 0.01    | unidentifiable       |
+| neighbor    | $n_{ord}$ | < 0     | unidentifiable       |
+
+Operational thresholds: R^2 >= 0.7 identifiable, 0.3 <= R^2 < 0.7 weakly
+identifiable, R^2 < 0.3 unidentifiable. The three weakly-identifiable
+parameters jointly carry the wetting / dewetting structure of the CPM at
+the 2D-morphology scale; the other four require additional observables
+(dynamics, 3D, single-cell tracking) to be recovered.
+
+## What this package does NOT do
+
+- **Segmentation.** Bring your own binary masks.
+- **Calibrate to absolute biological units.** Posteriors locate each
+  spheroid in the closest matching synthetic regime. Roughly 90% of real
+  CLL spheroids land outside the bundled library's nearest-neighbour
+  envelope, so absolute values should be read as "closest synthetic
+  regime", not as physical-unit point estimates. Cross-condition
+  *relative* shifts on the identifiable axes are the defensible read.
+- **Simulate.** The bundled CSV is the contract; the upstream CompuCell3D
+  simulator is referenced via DOI in `docs/METHODS.md`.
+
+## Citation
+
+If you use this code, please cite:
+
+```
+Djameldino et al., "Partial identifiability of Cellular Potts model parameters
+from 2D spheroid morphology in chronic lymphocytic leukemia",
+MSc thesis, University of Amsterdam, 2026.
+```
+
+## License
+
+MIT. See `LICENSE`.
