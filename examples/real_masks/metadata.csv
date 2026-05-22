@@ -1,0 +1,9 @@
+spheroid_id,patient,well,stimulation,drug,concentration_nM,condition_label
+VID1797_F1,VID1797,F1,unstimulated,none,0,unstim_baseline_rep1
+VID1797_F2,VID1797,F2,unstimulated,none,0,unstim_baseline_rep2
+VID1797_F5,VID1797,F5,IL-2/15/21/CpG,none,0,stim_control_rep1
+VID1797_F6,VID1797,F6,IL-2/15/21/CpG,none,0,stim_control_rep2
+VID1797_A5,VID1797,A5,IL-2/15/21/CpG,Entospletinib,100.0,stim_plus_drug_100nM
+VID1797_A6,VID1797,A6,IL-2/15/21/CpG,Entospletinib,10.0,stim_plus_drug_10nM
+VID1797_A7,VID1797,A7,IL-2/15/21/CpG,Entospletinib,1.0,stim_plus_drug_1nM
+VID1797_A8,VID1797,A8,IL-2/15/21/CpG,Entospletinib,0.1,stim_plus_drug_0.1nM

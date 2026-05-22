@@ -61,7 +61,12 @@ print(posterior[posterior.identifiability != "unidentifiable"]
       .pivot(index="spheroid_id", columns="parameter", values="median"))
 ```
 
-See `examples/01_quickstart.ipynb` for a full walk-through.
+See `examples/01_quickstart.ipynb` for a synthetic walk-through. For a
+**real-data** walk-through on eight U-Net-segmented CLL spheroid
+trajectories (bundled under `examples/real_masks/`), see
+`examples/03_real_data_walkthrough.ipynb`. It reproduces the Pass 5b
+finding from the thesis: Entospletinib at high dose rescues $J_{cc}$
+back to the unstim baseline.
 
 ## What this package gives you
 
