@@ -39,6 +39,12 @@ trajectory (one mask file per frame), or a flat folder of single-frame
 masks. Files can be `.jpg`, `.png`, or `.tif/.tiff`. White or non-zero
 pixels are treated as the spheroid; black or zero pixels as background.
 
+For full details on accepted formats, folder layouts, and the rules
+collaborators should follow when sending you masks, see
+`docs/DATA_PREPARATION.md`. Use `--strict` to error out (instead of
+silently keeping the largest) when an image contains more than one
+large connected component.
+
 The output CSV has one row per (spheroid, parameter):
 
 | spheroid_id | parameter   | median | q05  | q95  | identifiability       |

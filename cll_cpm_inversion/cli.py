@@ -37,6 +37,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-aggregate", action="store_true",
                    help="With per-spheroid trajectory folders, invert each "
                         "frame independently instead of averaging.")
+    p.add_argument("--strict", action="store_true",
+                   help="Error out (instead of silently keeping the largest) "
+                        "if any frame contains more than one large "
+                        "connected component (>= 5%% of the largest). Use "
+                        "this when you expect exactly one spheroid per "
+                        "frame and want to be told about violations.")
     p.add_argument("--save-features", default=None,
                    help="Also write the extracted feature table to this CSV.")
     return p
@@ -58,12 +64,18 @@ def main(argv: list[str] | None = None) -> int:
         if not masks_dir.is_dir():
             print(f"ERROR: not a directory: {masks_dir}", file=sys.stderr)
             return 2
-        print(f"Extracting features from {masks_dir}...")
-        summary, features = infer_from_masks(
-            masks_dir, k=args.k,
-            aggregate_trajectories=not args.no_aggregate,
-            return_features=True,
-        )
+        print(f"Extracting features from {masks_dir}"
+              f"{' (strict mode)' if args.strict else ''}...")
+        try:
+            summary, features = infer_from_masks(
+                masks_dir, k=args.k,
+                aggregate_trajectories=not args.no_aggregate,
+                strict=args.strict,
+                return_features=True,
+            )
+        except ValueError as exc:
+            print(f"ERROR (strict mode): {exc}", file=sys.stderr)
+            return 3
         if args.save_features:
             Path(args.save_features).parent.mkdir(parents=True, exist_ok=True)
             features.to_csv(args.save_features, index=False)

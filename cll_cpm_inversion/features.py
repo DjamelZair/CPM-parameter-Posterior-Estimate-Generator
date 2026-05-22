@@ -33,8 +33,21 @@ OPERATIONAL_FEATURES = [
 IMG_SUFFIXES = (".jpg", ".jpeg", ".png", ".tif", ".tiff")
 
 
-def _binarise(arr: np.ndarray) -> np.ndarray:
-    """Reduce to a clean boolean 2D mask: keep the largest CC, drop the rest."""
+# Strict-mode threshold: any connected component whose area is at least
+# MULTI_CC_FRACTION of the largest CC's area counts as a second spheroid
+# and will trigger a ValueError when strict=True. Pinprick noise (a few
+# pixels) stays below this threshold and is dropped silently as before.
+MULTI_CC_FRACTION = 0.05
+
+
+def _binarise(arr: np.ndarray,
+              strict: bool = False,
+              source: str | None = None) -> np.ndarray:
+    """Reduce to a clean boolean 2D mask: keep the largest CC, drop the rest.
+
+    In strict mode, raise ValueError if a second connected component is at
+    least MULTI_CC_FRACTION of the largest component's area.
+    """
     if arr.ndim == 3:
         arr = arr.mean(axis=2)
     mask = arr > 0
@@ -44,6 +57,20 @@ def _binarise(arr: np.ndarray) -> np.ndarray:
     sizes = np.bincount(labelled.ravel())
     sizes[0] = 0
     keep = int(sizes.argmax())
+    if strict:
+        largest = int(sizes[keep])
+        threshold = MULTI_CC_FRACTION * largest
+        big_others = [int(s) for i, s in enumerate(sizes)
+                      if i != 0 and i != keep and s >= threshold]
+        if big_others:
+            where = f" in {source}" if source else ""
+            raise ValueError(
+                f"strict mode: multiple large connected components"
+                f"{where}. Largest = {largest} px, other large CCs "
+                f"(>= {MULTI_CC_FRACTION:.0%} of largest) = "
+                f"{sorted(big_others, reverse=True)}. "
+                f"Crop or instance-separate before passing through "
+                f"the pipeline.")
     return labelled == keep
 
 
@@ -63,25 +90,31 @@ def _load_image(path: Path) -> np.ndarray:
     return arr
 
 
-def extract_features_from_mask(mask) -> dict:
+def extract_features_from_mask(mask, strict: bool = False) -> dict:
     """Compute the five operational features from one mask.
 
     Parameters
     ----------
     mask : numpy.ndarray | str | pathlib.Path
         Either a 2D mask array or a path to an image file.
+    strict : bool, default False
+        If True, raise ValueError when the mask contains more than one
+        large connected component (any component >= 5% of the largest).
+        If False, silently keep the largest component and drop the rest.
 
     Returns
     -------
     dict with keys: total_area, equivalent_diameter, solidity, perimeter,
     circularity. NaN-filled when the mask is empty.
     """
+    source: str | None = None
     if isinstance(mask, (str, Path)):
+        source = str(mask)
         mask = _load_image(Path(mask))
     elif not isinstance(mask, np.ndarray):
         raise TypeError(f"mask must be ndarray or path, got {type(mask)}")
 
-    binary = _binarise(mask)
+    binary = _binarise(mask, strict=strict, source=source)
     if not binary.any():
         return {f: float("nan") for f in OPERATIONAL_FEATURES}
 
@@ -121,7 +154,9 @@ def _aggregate_trajectory(rows: list[dict]) -> dict:
     return {f: float(df[f].mean(skipna=True)) for f in OPERATIONAL_FEATURES}
 
 
-def features_from_folder(folder, aggregate: bool = True) -> pd.DataFrame:
+def features_from_folder(folder,
+                         aggregate: bool = True,
+                         strict: bool = False) -> pd.DataFrame:
     """Walk a folder and return one feature row per spheroid.
 
     Layout A (flat):  one image file per spheroid -> spheroid_id = filename stem
@@ -136,6 +171,10 @@ def features_from_folder(folder, aggregate: bool = True) -> pd.DataFrame:
         If True and layout B, average the per-frame features into a single
         representative vector per spheroid. If False, return one row per
         (spheroid_id, frame).
+    strict : bool, default False
+        If True, raise ValueError on any frame with multiple large
+        connected components (defended against silent loss of a second
+        spheroid). See `MULTI_CC_FRACTION`.
 
     Returns
     -------
@@ -156,7 +195,7 @@ def features_from_folder(folder, aggregate: bool = True) -> pd.DataFrame:
                 continue
             traj_rows = []
             for i, fpath in enumerate(frames):
-                feats = extract_features_from_mask(fpath)
+                feats = extract_features_from_mask(fpath, strict=strict)
                 feats.update({"spheroid_id": sd.name, "frame": i,
                               "source_file": str(fpath)})
                 traj_rows.append(feats)
@@ -173,7 +212,7 @@ def features_from_folder(folder, aggregate: bool = True) -> pd.DataFrame:
             raise FileNotFoundError(
                 f"No image files (.jpg/.png/.tif/.tiff) found in {folder}")
         for fpath in files:
-            feats = extract_features_from_mask(fpath)
+            feats = extract_features_from_mask(fpath, strict=strict)
             feats.update({"spheroid_id": fpath.stem,
                           "source_file": str(fpath)})
             rows.append(feats)

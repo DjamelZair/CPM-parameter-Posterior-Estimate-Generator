@@ -54,6 +54,59 @@ def test_largest_component_wins():
     assert feats["solidity"] > 0.95
 
 
+def _two_disks(r1: int = 30, r2: int = 30, size: int = 250) -> np.ndarray:
+    """Two well-separated disks of given radii in one image."""
+    y, x = np.ogrid[:size, :size]
+    d1 = ((y - 60) ** 2 + (x - 60) ** 2 <= r1 ** 2)
+    d2 = ((y - 190) ** 2 + (x - 190) ** 2 <= r2 ** 2)
+    return ((d1 | d2).astype(np.uint8)) * 255
+
+
+def test_strict_passes_on_single_spheroid_with_pinprick_noise():
+    """Strict mode must not raise on the small-speck case it was designed to ignore."""
+    mask = _disk_mask(radius=30, size=200)
+    mask[5:7, 5:7] = 255   # 4-pixel speck, much less than 5% of disk area
+    mask[10, 10] = 255
+    feats = extract_features_from_mask(mask, strict=True)
+    assert feats["solidity"] > 0.95
+
+
+def test_strict_raises_on_two_equal_disks():
+    """Two genuine spheroids should error in strict mode."""
+    mask = _two_disks(r1=30, r2=30)
+    with pytest.raises(ValueError, match="multiple large connected components"):
+        extract_features_from_mask(mask, strict=True)
+
+
+def test_strict_raises_on_unequal_disks_above_threshold():
+    """Second spheroid at ~10% of the first should still raise (above 5% threshold)."""
+    mask = _two_disks(r1=40, r2=14)  # area ratio ~0.12
+    with pytest.raises(ValueError, match="multiple large connected components"):
+        extract_features_from_mask(mask, strict=True)
+
+
+def test_strict_passes_on_subthreshold_second_component():
+    """Second CC below the 5% threshold should not trigger strict mode."""
+    mask = _two_disks(r1=50, r2=8)   # area ratio ~0.026, below 5%
+    feats = extract_features_from_mask(mask, strict=True)
+    assert feats["solidity"] > 0.85
+
+
+def test_strict_propagates_through_features_from_folder(tmp_path: Path):
+    """features_from_folder(strict=True) should raise on a two-spheroid file."""
+    Image.fromarray(_two_disks(r1=30, r2=30)).save(tmp_path / "bad.png")
+    with pytest.raises(ValueError, match="multiple large connected components"):
+        features_from_folder(tmp_path, strict=True)
+
+
+def test_strict_off_keeps_old_behavior_on_two_disks(tmp_path: Path):
+    """Non-strict default: two disks -> silently keep the bigger one."""
+    Image.fromarray(_two_disks(r1=40, r2=20)).save(tmp_path / "two.png")
+    df = features_from_folder(tmp_path, strict=False)
+    assert len(df) == 1
+    assert df["total_area"].iloc[0] > np.pi * 35 ** 2  # close to big disk's area
+
+
 def test_features_from_folder_flat(tmp_path: Path):
     """Flat folder: one mask per file, one row per file."""
     for i, r in enumerate([20, 25, 30]):

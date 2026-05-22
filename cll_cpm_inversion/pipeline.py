@@ -15,6 +15,7 @@ PathLike = Union[str, Path]
 def infer_from_masks(masks_path: PathLike,
                      k: int = 20,
                      aggregate_trajectories: bool = True,
+                     strict: bool = False,
                      return_features: bool = False,
                      ) -> pd.DataFrame | tuple[pd.DataFrame, pd.DataFrame]:
     """Extract features from a folder of masks and return posterior summary.
@@ -27,6 +28,10 @@ def infer_from_masks(masks_path: PathLike,
     aggregate_trajectories : if a trajectory folder is given, average
         per-frame features into one row per spheroid (default). Set to
         False to invert each frame independently.
+    strict : if True, raise ValueError on any frame containing more than
+        one large connected component (defends against silent loss of a
+        second spheroid). Default False (lenient: keep the largest, drop
+        the rest).
     return_features : if True, return (posterior_summary, features_df).
 
     Returns
@@ -35,7 +40,9 @@ def infer_from_masks(masks_path: PathLike,
     [spheroid_id, parameter, median, q05, q95, q25, q75, n_matches,
      loo_r2, identifiability].
     """
-    features_df = features_from_folder(masks_path, aggregate=aggregate_trajectories)
+    features_df = features_from_folder(masks_path,
+                                       aggregate=aggregate_trajectories,
+                                       strict=strict)
     nan_rows = features_df[OPERATIONAL_FEATURES].isna().any(axis=1)
     if nan_rows.any():
         bad = features_df.loc[nan_rows, "spheroid_id"].tolist()
