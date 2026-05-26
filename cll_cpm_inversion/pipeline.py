@@ -73,3 +73,22 @@ def infer_from_features(features_df: pd.DataFrame,
     """
     posterior = invert_observations(features_df, id_col=id_col, k=k)
     return summarise_posterior(posterior)
+
+
+def infer_from_coords(coords_csv: PathLike,
+                      k: int = 20,
+                      strict: bool = False) -> pd.DataFrame:
+    """Invert a ``(cell_id, x, y)`` coordinate CSV into CPM parameter posteriors.
+
+    Each distinct id is one spheroid; its rows are the foreground pixels. The
+    points are rasterised to a mask and run through the same feature extraction
+    as the image path, then matched against the synthetic library.
+
+    Returns
+    -------
+    Same posterior summary as ``infer_from_masks`` / ``infer_from_features``.
+    """
+    from .coords_io import features_from_coords
+
+    features = features_from_coords(coords_csv, strict=strict)
+    return infer_from_features(features, k=k)

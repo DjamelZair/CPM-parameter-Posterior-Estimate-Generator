@@ -30,6 +30,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Skip feature extraction; read a pre-built feature "
                         "CSV (must contain spheroid_id and the five "
                         "OPERATIONAL_FEATURES columns).")
+    p.add_argument("--coords-csv", default=None,
+                   help="Invert a (cell_id, x, y) coordinate CSV: each distinct "
+                        "id is one spheroid and its rows are the foreground "
+                        "pixels (aliases: spheroid_id/id/label, col/cx, row/cy).")
     p.add_argument("--out", default="posteriors.csv",
                    help="Output CSV path (default: posteriors.csv)")
     p.add_argument("-k", "--k", type=int, default=20,
@@ -51,11 +55,18 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
-    if not args.masks_dir and not args.features_csv:
-        print("ERROR: must supply masks_dir or --features-csv", file=sys.stderr)
+    if not args.masks_dir and not args.features_csv and not args.coords_csv:
+        print("ERROR: must supply masks_dir, --features-csv, or --coords-csv",
+              file=sys.stderr)
         return 2
 
-    if args.features_csv:
+    if args.coords_csv:
+        from .coords_io import features_from_coords
+        features = features_from_coords(args.coords_csv, strict=args.strict)
+        print(f"Built features for {len(features)} spheroids from "
+              f"{args.coords_csv}")
+        summary = infer_from_features(features, k=args.k)
+    elif args.features_csv:
         features = pd.read_csv(args.features_csv)
         print(f"Loaded {len(features)} feature rows from {args.features_csv}")
         summary = infer_from_features(features, k=args.k)

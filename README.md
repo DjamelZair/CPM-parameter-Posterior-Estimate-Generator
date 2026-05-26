@@ -3,7 +3,9 @@
 Invert segmented spheroid morphology into Cellular Potts Model (CPM)
 parameter posteriors, with per-parameter identifiability flags.
 
-Given a folder of segmented spheroid masks (JPG / TIFF / PNG), this package:
+Input is either a folder of segmented spheroid masks (JPG / TIFF / PNG), a
+pre-built feature CSV, or a **coordinate CSV** (`cell_id, x, y`, one row per
+foreground pixel). Given any of these, this package:
 
 1. extracts the five operational morphology features (area, equivalent
    diameter, solidity, perimeter, circularity);
@@ -33,6 +35,24 @@ pip install -e .
 ```bash
 cll-invert /path/to/masks/  --out posteriors.csv
 ```
+
+You can also invert a **coordinate CSV** (`cell_id, x, y`), the portable input
+format: each distinct `cell_id` is one spheroid and its rows are the foreground
+pixels. Column aliases `spheroid_id`/`id`/`label`, `col`/`cx`, `row`/`cy` are
+accepted, and the delimiter (`,` / `;` / tab) is auto-detected.
+
+```bash
+cll-invert --coords-csv examples/example_coords.csv  --out posteriors.csv
+```
+
+```python
+import cll_cpm_inversion as ci
+posteriors = ci.infer_from_coords("examples/example_coords.csv", k=20)
+```
+
+A coordinate CSV is rasterised back to a mask and run through the same feature
+extraction as the image path, so it yields identical features to the equivalent
+mask (verified in `tests/test_coords_io.py`).
 
 `/path/to/masks/` is a folder where each subfolder is one spheroid
 trajectory (one mask file per frame), or a flat folder of single-frame
