@@ -34,6 +34,15 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Invert a (cell_id, x, y) coordinate CSV: each distinct "
                         "id is one spheroid and its rows are the foreground "
                         "pixels (aliases: spheroid_id/id/label, col/cx, row/cy).")
+    p.add_argument("--trajectory", action="store_true",
+                   help="Primary matcher: match the whole tau-registered "
+                        "trajectory against the bundled library trajectories "
+                        "instead of the end-state. Use with a Layout-B masks "
+                        "folder (one subfolder per spheroid) or a feature CSV "
+                        "with multiple frames per spheroid_id (see --frame-col).")
+    p.add_argument("--frame-col", default=None,
+                   help="With --trajectory + --features-csv, the column giving "
+                        "frame order within each spheroid.")
     p.add_argument("--out", default="posteriors.csv",
                    help="Output CSV path (default: posteriors.csv)")
     p.add_argument("-k", "--k", type=int, default=20,
@@ -60,7 +69,22 @@ def main(argv: list[str] | None = None) -> int:
               file=sys.stderr)
         return 2
 
-    if args.coords_csv:
+    if args.trajectory:
+        from .trajectory import infer_from_trajectory, infer_from_mask_trajectories
+        if args.features_csv:
+            frames = pd.read_csv(args.features_csv)
+            print(f"Trajectory matching {frames[ 'spheroid_id'].nunique()} "
+                  f"spheroids from {args.features_csv}")
+            summary = infer_from_trajectory(frames, frame_col=args.frame_col, k=args.k)
+        elif args.masks_dir:
+            print(f"Trajectory matching from {args.masks_dir} (Layout B)...")
+            summary = infer_from_mask_trajectories(args.masks_dir, k=args.k,
+                                                   strict=args.strict)
+        else:
+            print("ERROR: --trajectory needs a masks folder or --features-csv",
+                  file=sys.stderr)
+            return 2
+    elif args.coords_csv:
         from .coords_io import features_from_coords
         features = features_from_coords(args.coords_csv, strict=args.strict)
         print(f"Built features for {len(features)} spheroids from "

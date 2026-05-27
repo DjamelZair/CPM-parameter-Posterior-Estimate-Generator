@@ -12,7 +12,13 @@ foreground pixel). Given any of these, this package:
 2. matches each observation against a bundled 1105-vector synthetic library
    sampled with a 7-parameter Saltelli design;
 3. returns a posterior distribution over CPM parameters (median + 5th / 95th
-   percentiles) using Sobol-weighted k-nearest-neighbour matching;
+   percentiles) using Sobol-weighted k-nearest-neighbour matching. The
+   **primary matcher is trajectory-based** (`infer_from_trajectory`): it
+   compares the whole time course against the bundled library *trajectories*
+   on a shared phase axis (tau-registration). A **static end-state matcher**
+   is retained for comparison; the two are complementary (trajectory matching
+   is better for identifiability, end-state is the more sensitive probe of a
+   drug-induced settled state);
 4. flags each parameter as **identifiable**, **weakly identifiable**, or
    **unidentifiable** based on the leave-one-out R^2 of the bundled library.
 
@@ -33,7 +39,19 @@ pip install -e .
 ## Quickstart (CLI)
 
 ```bash
-cll-invert /path/to/masks/  --out posteriors.csv
+cll-invert /path/to/masks/  --out posteriors.csv              # end-state matcher
+cll-invert /path/to/masks/  --trajectory  --out posteriors.csv  # trajectory matcher (primary)
+```
+
+For the **trajectory matcher**, point at a Layout-B folder (one subfolder per
+spheroid, frames inside); each trajectory is tau-registered and matched against
+the bundled library trajectories:
+
+```python
+import cll_cpm_inversion as ci
+posteriors = ci.infer_from_mask_trajectories("/path/to/masks_root/", k=20)
+# or from a per-frame feature table:
+posteriors = ci.infer_from_trajectory(frames_df, id_col="spheroid_id", frame_col="frame")
 ```
 
 You can also invert a **coordinate CSV** (`cell_id, x, y`), the portable input
@@ -98,13 +116,16 @@ back to the unstim baseline.
 
 | Parameter   | Symbol     | LOO R^2 | Flag                 |
 |-------------|-----------|---------|----------------------|
-| cm_adhesion | $J_{cm}$  | 0.61    | weakly identifiable  |
-| width       | $w$       | 0.47    | weakly identifiable  |
-| contact     | $J_{cc}$  | 0.31    | weakly identifiable  |
-| lambda      | $\lambda_V$ | 0.04  | unidentifiable       |
-| temp        | $T$       | 0.13    | unidentifiable       |
-| contact_no  | $r_{ct}$  | 0.13    | unidentifiable       |
+| cm_adhesion | $J_{cm}$  | 0.62    | weakly identifiable  |
+| width       | $w$       | 0.54    | weakly identifiable  |
+| contact     | $J_{cc}$  | 0.38    | weakly identifiable  |
+| lambda      | $\lambda_V$ | 0.18  | unidentifiable       |
+| temp        | $T$       | 0.17    | unidentifiable       |
+| contact_no  | $r_{ct}$  | 0.14    | unidentifiable       |
 | neighbor    | $n_{ord}$ | < 0     | unidentifiable       |
+
+(Leave-one-out R^2 under the primary trajectory matcher; the same three
+parameters clear the threshold under the end-state matcher.)
 
 Operational thresholds: R^2 >= 0.7 identifiable, 0.3 <= R^2 < 0.7 weakly
 identifiable, R^2 < 0.3 unidentifiable. The three weakly-identifiable

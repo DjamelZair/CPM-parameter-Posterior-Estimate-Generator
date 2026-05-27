@@ -33,9 +33,17 @@ from .invert import (
 )
 from .pipeline import infer_from_masks, infer_from_features, infer_from_coords
 from .coords_io import features_from_coords, read_coords
+from .trajectory import (
+    infer_from_trajectory,
+    infer_from_mask_trajectories,
+    load_trajectory_library,
+)
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
+    "infer_from_trajectory",
+    "infer_from_mask_trajectories",
+    "load_trajectory_library",
     "infer_from_masks",
     "infer_from_features",
     "infer_from_coords",

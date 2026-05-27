@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cll-cpm-inversion"
-version = "0.1.0"
+version = "0.2.0"
 description = "Invert segmented spheroid morphology into CPM parameter posteriors"
 readme = "README.md"
 requires-python = ">=3.9"
