@@ -5,6 +5,12 @@
 #     text_representation:
 #       extension: .py
 #       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.1
+#   kernelspec:
+#     display_name: Python (uva-aml-2025)
+#     language: python
+#     name: uva-aml-2025
 # ---
 
 # %% [markdown]
@@ -109,7 +115,7 @@ features_df.groupby("condition_label")[
 # ## 3. Invert into CPM parameter posteriors
 #
 # The same Sobol-weighted k-NN matcher used in the thesis, against the
-# bundled 583-vector synthetic library. The output is one row per
+# bundled 1105-vector synthetic library. The output is one row per
 # (spheroid, CPM parameter).
 
 # %%

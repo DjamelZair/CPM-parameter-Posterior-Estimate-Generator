@@ -1,6 +1,6 @@
 """Sobol-weighted k-NN inversion against the bundled Saltelli library.
 
-The bundled CSV `data/synthetic_library.csv` is a joined table of 583
+The bundled CSV `data/synthetic_library.csv` is a joined table of 1105
 nan-free Saltelli vectors: each row is one synthetic spheroid with its
 7 CPM parameters and 5 (+ eccentricity) replicate-averaged final-MCS
 features. The same per-feature Sobol weights and identifiability R^2 used
@@ -37,7 +37,7 @@ def _data_path(name: str):
 
 
 def load_synthetic_library() -> pd.DataFrame:
-    """583 rows of (PARAMS + features). Index = sample_id."""
+    """1105 rows of (PARAMS + features). Index = sample_id."""
     path = _data_path("synthetic_library.csv")
     df = pd.read_csv(path)
     if "sample_id" in df.columns:

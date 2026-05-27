@@ -5,6 +5,12 @@
 #     text_representation:
 #       extension: .py
 #       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.1
+#   kernelspec:
+#     display_name: Python (uva-aml-2025)
+#     language: python
+#     name: uva-aml-2025
 # ---
 
 # %% [markdown]

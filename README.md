@@ -9,7 +9,7 @@ foreground pixel). Given any of these, this package:
 
 1. extracts the five operational morphology features (area, equivalent
    diameter, solidity, perimeter, circularity);
-2. matches each observation against a bundled 583-vector synthetic library
+2. matches each observation against a bundled 1105-vector synthetic library
    sampled with a 7-parameter Saltelli design;
 3. returns a posterior distribution over CPM parameters (median + 5th / 95th
    percentiles) using Sobol-weighted k-nearest-neighbour matching;
@@ -98,12 +98,12 @@ back to the unstim baseline.
 
 | Parameter   | Symbol     | LOO R^2 | Flag                 |
 |-------------|-----------|---------|----------------------|
-| cm_adhesion | $J_{cm}$  | 0.58    | weakly identifiable  |
-| width       | $w$       | 0.51    | weakly identifiable  |
-| contact     | $J_{cc}$  | 0.32    | weakly identifiable  |
-| lambda      | $\lambda_V$ | 0.19  | unidentifiable       |
-| temp        | $T$       | 0.19    | unidentifiable       |
-| contact_no  | $r_{ct}$  | 0.01    | unidentifiable       |
+| cm_adhesion | $J_{cm}$  | 0.61    | weakly identifiable  |
+| width       | $w$       | 0.47    | weakly identifiable  |
+| contact     | $J_{cc}$  | 0.31    | weakly identifiable  |
+| lambda      | $\lambda_V$ | 0.04  | unidentifiable       |
+| temp        | $T$       | 0.13    | unidentifiable       |
+| contact_no  | $r_{ct}$  | 0.13    | unidentifiable       |
 | neighbor    | $n_{ord}$ | < 0     | unidentifiable       |
 
 Operational thresholds: R^2 >= 0.7 identifiable, 0.3 <= R^2 < 0.7 weakly

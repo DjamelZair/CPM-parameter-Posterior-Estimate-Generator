@@ -45,7 +45,7 @@ work (U-Net 3_heavy_aug) clears the radiomics CCC bar (>= 0.85) on it.
 
 ## 3. The synthetic library
 
-`data/synthetic_library.csv` (583 rows, 14 columns) is the
+`data/synthetic_library.csv` (1105 rows, 14 columns) is the
 replicate-averaged final-MCS feature vector of each NaN-free Saltelli
 sample, joined with the 7-parameter input vector that produced it.
 
@@ -61,16 +61,16 @@ sample, joined with the 7-parameter input vector that produced it.
 
 The Saltelli design was used to compute first-order ($S_1$), total-order
 ($S_T$), and pairwise ($S_{ij}$) Sobol indices via the SALib estimator.
-The 583 nan-free vectors come from a budget of 1152 designed vectors;
-the remaining 569 are not part of the bundled library because their
-simulator outputs were lost during the original sweep.
+The 1105 nan-free vectors come from a budget of 1152 designed vectors;
+the remaining 47 are excluded because their simulator outputs were empty
+(NaN morphology features).
 
 `data/sobol_indices.csv` is the per-(feature, parameter) Sobol index
 table. The matcher uses the column-mean of `ST` across parameters to
 weight the five features in the matching metric.
 
 `data/identifiability_loo.csv` holds the leave-one-out R^2 and Pearson
-r per parameter from the same 583-vector library, computed under the
+r per parameter from the same 1105-vector library, computed under the
 same Sobol-weighted k-NN matcher with k = 20. These R^2 values drive
 the identifiability flag.
 
