@@ -93,6 +93,13 @@ The output CSV has one row per (spheroid, parameter):
 | W001        | lambda      | 12.5   |  2.3 | 19.7 | unidentifiable       |
 | ...         | ...         | ...    | ...  | ...  | ...                  |
 
+It also reports `prior_low`, `prior_high`, and `interval_frac_of_prior` per
+parameter, so the `q05-q95` interval can be read as a **narrowed calibration
+target**: e.g. an `interval_frac_of_prior` of 0.40 means the posterior pins
+that parameter to 40% of its prior sweep range. Identifiable parameters narrow
+substantially (~0.35-0.6); unidentifiable ones stay near 1.0 (no narrowing),
+which is the signal not to calibrate on them.
+
 ## Quickstart (Python)
 
 ```python

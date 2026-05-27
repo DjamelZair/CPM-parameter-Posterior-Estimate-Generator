@@ -229,6 +229,10 @@ def summarise_posterior(posterior: pd.DataFrame,
     if loo is None:
         loo = load_identifiability()
     r2_by_param = dict(zip(loo["param"], loo["R2"]))
+    # prior sweep range per parameter (from the bundled library), so the
+    # posterior interval can be reported as a narrowed calibration target.
+    lib = load_synthetic_library()
+    prior = {p: (float(lib[p].min()), float(lib[p].max())) for p in PARAMS}
 
     rows = []
     for (group, sub) in posterior.groupby("group", sort=False):
@@ -237,14 +241,21 @@ def summarise_posterior(posterior: pd.DataFrame,
             if len(vals) == 0:
                 continue
             r2 = r2_by_param.get(p, float("nan"))
+            q05 = float(np.percentile(vals, 5))
+            q95 = float(np.percentile(vals, 95))
+            lo, hi = prior[p]
+            span = hi - lo
             rows.append({
                 "spheroid_id":     group,
                 "parameter":       p,
                 "median":          float(np.median(vals)),
-                "q05":             float(np.percentile(vals, 5)),
-                "q95":             float(np.percentile(vals, 95)),
+                "q05":             q05,
+                "q95":             q95,
                 "q25":             float(np.percentile(vals, 25)),
                 "q75":             float(np.percentile(vals, 75)),
+                "prior_low":       lo,
+                "prior_high":      hi,
+                "interval_frac_of_prior": float((q95 - q05) / span) if span > 0 else float("nan"),
                 "n_matches":       int(len(vals)),
                 "loo_r2":          float(r2) if r2 == r2 else float("nan"),
                 "identifiability": identifiability_flag(r2) if r2 == r2 else "unknown",
