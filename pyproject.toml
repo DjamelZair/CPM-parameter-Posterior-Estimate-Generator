@@ -45,4 +45,4 @@ Issues = "https://github.com/DjamelZair/CPM-parameter-Posterior-Estimate-Generat
 include = ["cll_cpm_inversion*"]
 
 [tool.setuptools.package-data]
-cll_cpm_inversion = ["data/*.csv"]
+cll_cpm_inversion = ["data/*.csv", "data/*.csv.gz"]
