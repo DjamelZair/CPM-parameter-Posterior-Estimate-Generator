@@ -121,14 +121,16 @@ def main(argv: list[str] | None = None) -> int:
     summary.to_csv(out_path, index=False)
     print(f"Saved posterior summary -> {out_path}  ({len(summary)} rows)")
 
-    ident = summary[summary["identifiability"] != "unidentifiable"]
-    print(f"\nIdentifiable + weakly-identifiable posterior medians "
-          f"({ident['parameter'].nunique()} parameters, "
+    ident = summary[summary["identifiability"] != "unidentifiable"].copy()
+    ident["estimate"] = ident.apply(
+        lambda r: f"{r['median']:.1f} [{r['q05']:.1f}-{r['q95']:.1f}]", axis=1)
+    print(f"\nIdentifiable + weakly-identifiable posterior estimates "
+          f"(median [q05-q95]; {ident['parameter'].nunique()} parameters, "
           f"{summary['spheroid_id'].nunique()} spheroids):")
-    pivot = (ident.pivot(index="spheroid_id",
-                         columns="parameter", values="median")
-                  .round(2))
+    pivot = ident.pivot(index="spheroid_id", columns="parameter", values="estimate")
     print(pivot.to_string())
+    print(f"\nFull per-parameter ranges (incl. unidentifiable, prior bounds) "
+          f"written to {out_path}")
     return 0
 
 
