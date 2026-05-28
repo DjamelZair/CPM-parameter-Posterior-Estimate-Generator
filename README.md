@@ -72,6 +72,39 @@ A coordinate CSV is rasterised back to a mask and run through the same feature
 extraction as the image path, so it yields identical features to the equivalent
 mask (verified in `tests/test_coords_io.py`).
 
+### CSV-only demo: trajectory matching from a feature table
+
+If your data is already a table of per-frame shape features (no images), feed it
+straight to the primary (trajectory) matcher. The CSV needs one row per frame
+with columns `spheroid_id, frame, total_area, equivalent_diameter, solidity,
+perimeter, circularity`; rows sharing a `spheroid_id` form one trajectory,
+ordered by `frame`:
+
+```bash
+cll-invert --features-csv examples/example_trajectories.csv \
+           --trajectory --frame-col frame --out posteriors.csv
+```
+
+`examples/example_trajectories.csv` bundles 20 real VID1797 spheroids (an
+Entospletinib dose ladder plus controls). Running it reproduces the thesis Pass
+5b finding directly from the CSV: stimulation suppresses inferred cell-cell
+adhesion (`contact`, J_cc), and a high drug dose restores it.
+
+| well    | condition                    | J_cc (`contact`) median |
+|---------|------------------------------|-------------------------|
+| F1 / F2 | unstimulated control         | 27.0 / 38.5             |
+| F5 / F6 | stimulated control           | 16.1 / 16.1             |
+| A8      | stim + 0.1 nM Entospletinib  | 16.1                    |
+| A5      | stim + 100 nM Entospletinib  | 35.6                    |
+
+The same call in Python:
+
+```python
+import pandas as pd, cll_cpm_inversion as ci
+frames = pd.read_csv("examples/example_trajectories.csv")
+posteriors = ci.infer_from_trajectory(frames, id_col="spheroid_id", frame_col="frame")
+```
+
 `/path/to/masks/` is a folder where each subfolder is one spheroid
 trajectory (one mask file per frame), or a flat folder of single-frame
 masks. Files can be `.jpg`, `.png`, or `.tif/.tiff`. White or non-zero

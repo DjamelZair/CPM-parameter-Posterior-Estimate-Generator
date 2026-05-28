@@ -1,0 +1,5 @@
+spheroid_id,patient,well,stimulation,drug,concentration_nM,mechanism_class,condition_label
+VID1087_A2,2089,A2,unstimulated,ibrutinib,1000,BTKi,BTK_inhibitor
+VID1087_A5,2089,A5,unstimulated,idelalisib,100,PI3Ki,PI3Kdelta_inhibitor
+VID1087_A11,2089,A11,unstimulated,bay_11-7082,1000,NF-kB,NFkB_inhibitor
+VID1873_D4,706_t1,D4,unstimulated,IT1T,10,CXCR4,CXCR4_antagonist
