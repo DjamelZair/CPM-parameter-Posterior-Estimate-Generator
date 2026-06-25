@@ -185,14 +185,45 @@ the 2D-morphology scale; the other four require additional observables
 - **Simulate.** The bundled CSV is the contract; the upstream CompuCell3D
   simulator is referenced via DOI in `docs/METHODS.md`.
 
+## Documentation and provenance
+
+- `docs/METHODS.md` - matching method, surrogate, and the upstream CompuCell3D
+  simulator (DOI).
+- `docs/PARAMETERS.md` - the seven CPM parameters and their symbols.
+- `docs/DATA_PREPARATION.md` - accepted mask formats and folder layouts.
+- `docs/CONTRIBUTING.md` - development and test instructions.
+- `cll_cpm_inversion/data/synthetic_library_eda_report.md` - provenance and EDA
+  of the bundled 1105-vector synthetic library (the matching contract).
+- `REPO_TO_THESIS.md` - which repo paths back which thesis sections, tables, and
+  figures.
+
+## Reproducing the worked example
+
+For the quickest end-to-end check, from a clone:
+
+```bash
+pip install -e .
+python demo.py                      # one-command demo over the bundled real masks
+```
+
+or reproduce the Pass 5b J_cc table above directly from the bundled CSV:
+
+```bash
+cll-invert --features-csv examples/example_trajectories.csv \
+           --trajectory --frame-col frame --out posteriors.csv
+```
+
+A second worked example, `examples/drug_panel_demo/` (four drugs, one per
+mechanism class), shows the inverter running across mechanisms; see its
+`README.md` for the wells and caveats.
+
 ## Citation
 
 If you use this code, please cite:
 
 ```
-Djameldino et al., "Partial identifiability of Cellular Potts model parameters
-from 2D spheroid morphology in chronic lymphocytic leukemia",
-MSc thesis, University of Amsterdam, 2026.
+D.D. Zair, "Inferring Cellular Potts Model Parameters from Chronic Lymphocytic
+Leukaemia Tumour Morphology", MSc thesis, University of Amsterdam, 2026.
 ```
 
 ## License
