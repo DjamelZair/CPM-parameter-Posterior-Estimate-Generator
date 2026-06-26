@@ -226,6 +226,8 @@ D.D. Zair, "Inferring Cellular Potts Model Parameters from Chronic Lymphocytic
 Leukaemia Tumour Morphology", MSc thesis, University of Amsterdam, 2026.
 ```
 
+Author: D.D. Zair. Supervisor: Dr. V.S. Muniraj (University of Amsterdam).
+
 ## License
 
 MIT. See `LICENSE`.
