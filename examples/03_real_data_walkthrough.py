@@ -54,7 +54,14 @@ from cll_cpm_inversion import (
     load_identifiability,
 )
 
-MASKS_DIR = Path("real_masks")
+# Resolve the bundled masks relative to this file so the script runs from any
+# working directory (as a script `__file__` is set; in a notebook it is not, and
+# the kernel's working directory is this `examples/` folder).
+try:
+    HERE = Path(__file__).resolve().parent
+except NameError:
+    HERE = Path.cwd()
+MASKS_DIR = HERE / "real_masks"
 META_CSV  = MASKS_DIR / "metadata.csv"
 assert MASKS_DIR.is_dir(), f"missing {MASKS_DIR}"
 assert META_CSV.is_file(), f"missing {META_CSV}"

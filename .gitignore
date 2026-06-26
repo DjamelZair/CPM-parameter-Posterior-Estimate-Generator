@@ -10,3 +10,8 @@ venv/
 .env
 *.log
 .DS_Store
+
+# generated example / demo outputs
+posteriors.csv
+*_posteriors.csv
+demo_posteriors.png
