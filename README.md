@@ -156,16 +156,24 @@ back to the unstim baseline.
 
 | Parameter   | Symbol     | LOO R^2 | Flag                 |
 |-------------|-----------|---------|----------------------|
-| cm_adhesion | $J_{cm}$  | 0.62    | weakly identifiable  |
-| width       | $w$       | 0.54    | weakly identifiable  |
-| contact     | $J_{cc}$  | 0.38    | weakly identifiable  |
-| lambda      | $\lambda_V$ | 0.18  | unidentifiable       |
-| temp        | $T$       | 0.17    | unidentifiable       |
-| contact_no  | $r_{ct}$  | 0.14    | unidentifiable       |
-| neighbor    | $n_{ord}$ | < 0     | unidentifiable       |
+| cm_adhesion | $J_{cm}$  | 0.615   | weakly identifiable  |
+| width       | $w$       | 0.635   | weakly identifiable  |
+| contact     | $J_{cc}$  | 0.344   | weakly identifiable  |
+| lambda      | $\lambda_V$ | 0.126 | unidentifiable       |
+| temp        | $T$       | 0.164   | unidentifiable       |
+| contact_no  | $r_{ct}$  | 0.167   | unidentifiable       |
+| neighbor    | $n_{ord}$ | -0.069  | unidentifiable       |
 
 (Leave-one-out R^2 under the primary trajectory matcher; the same three
 parameters clear the threshold under the end-state matcher.)
+
+> **Provenance.** The table above is the canonical tau-primary LOO R^2, matching
+> the thesis (`table5_identifiability_tau.csv`), and is exactly what the bundled
+> tool emits from `data/identifiability_loo.csv`. An earlier leave-one-out
+> computation (e.g. $w$ 0.54, $J_{cc}$ 0.38) is preserved unchanged as
+> `data/identifiability_loo_legacy.csv` for transparency; it yields the **same
+> three weakly-identifiable / four unidentifiable flags**. See
+> `cll_cpm_inversion/data/CSV_PROVENANCE.md`.
 
 Operational thresholds: R^2 >= 0.7 identifiable, 0.3 <= R^2 < 0.7 weakly
 identifiable, R^2 < 0.3 unidentifiable. The three weakly-identifiable
